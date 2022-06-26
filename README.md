@@ -19,11 +19,11 @@ possible to make it fully zero copy.
 Add the latest version to your project:
 
 ```sh
-go get github.com/dnaka91/go-vmc
+go get github.com/dnaka91/go-vmcparser
 ```
 
 For further usage details and examples, please check out the
-[API docs](https://pkg.go.dev/github.com/dnaka91/go-vmc).
+[API docs](https://pkg.go.dev/github.com/dnaka91/go-vmcparser).
 
 ## License
 

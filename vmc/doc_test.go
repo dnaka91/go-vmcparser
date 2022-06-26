@@ -5,8 +5,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/dnaka91/go-vmc/osc"
-	"github.com/dnaka91/go-vmc/vmc"
+	"github.com/dnaka91/go-vmcparser/osc"
+	"github.com/dnaka91/go-vmcparser/vmc"
 )
 
 func ExampleParseMessage() {

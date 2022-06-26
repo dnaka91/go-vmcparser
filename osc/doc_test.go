@@ -3,7 +3,7 @@ package osc_test
 import (
 	"fmt"
 
-	"github.com/dnaka91/go-vmc/osc"
+	"github.com/dnaka91/go-vmcparser/osc"
 )
 
 func ExampleReadPacket() {

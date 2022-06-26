@@ -3,7 +3,7 @@ package vmc
 import (
 	"fmt"
 
-	"github.com/dnaka91/go-vmc/osc"
+	"github.com/dnaka91/go-vmcparser/osc"
 )
 
 // OSC message addresses for the VMC marionette messages.

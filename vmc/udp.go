@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/dnaka91/go-vmc/osc"
+	"github.com/dnaka91/go-vmcparser/osc"
 )
 
 // Various pre-defined and recommended buffer sizes to use with NewUDPServer.

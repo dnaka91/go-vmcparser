@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dnaka91/go-vmc/osc"
+	"github.com/dnaka91/go-vmcparser/osc"
 )
 
 // ErrUnknownAddress can happen during ParseMessage, if the message address describes either an
