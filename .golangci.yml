@@ -1,0 +1,34 @@
+linters:
+  enable-all: true
+  disable:
+    # deprecated
+    - exhaustivestruct
+    - golint
+    - interfacer
+    - maligned
+    - scopelint
+    # others
+    - forcetypeassert
+    - ireturn
+    - paralleltest
+    - wsl
+issues:
+  exclude-rules:
+    # Several issues that are just bothersome for tests.
+    - path: _test\.go
+      linters:
+        - exhaustruct
+        - funlen
+        - lll
+        - nlreturn
+    # can't really do much about the following issues,
+    # and not worth refactoring either.
+    - text: ^Function '(readMessage|ParseMessage)' has too many statements
+      linters:
+        - funlen
+    - text: ^cognitive complexity \d+ of func `readMessage` is high
+      linters:
+        - gocognit
+    - text: ^calculated cyclomatic complexity for function (readMessage|ParseMessage) is
+      linters:
+        - cyclop
