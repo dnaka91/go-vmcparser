@@ -133,7 +133,7 @@ func TestParseMidiNodeInput(t *testing.T) {
 	assertMessage(
 		t,
 		[]byte("/VMC/Ext/Midi/Note\x00\x00,iiif\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x02\x3f\x8c\xcc\xcd"),
-		&vmc.MidiNodeInput{
+		&vmc.MidiNoteInput{
 			Active:   true,
 			Channel:  1,
 			Note:     2,

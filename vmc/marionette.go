@@ -381,25 +381,25 @@ func parseKeyboardInput(msg *osc.Message) (*KeyboardInput, error) {
 	}, nil
 }
 
-type MidiNodeInput struct {
+type MidiNoteInput struct {
 	Active   bool
 	Channel  int32
 	Note     int32
 	Velocity float32
 }
 
-func (m *MidiNodeInput) isMessage() {}
+func (m *MidiNoteInput) isMessage() {}
 
-func (m *MidiNodeInput) Address() string {
+func (m *MidiNoteInput) Address() string {
 	return AddressMidiNoteInput
 }
 
-func parseMidiNoteInput(msg *osc.Message) (*MidiNodeInput, error) {
+func parseMidiNoteInput(msg *osc.Message) (*MidiNoteInput, error) {
 	if msg.TypeTags != "iiif" {
 		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: "iiif"}
 	}
 
-	return &MidiNodeInput{
+	return &MidiNoteInput{
 		Active:   msg.Arguments[0].(int32) == 1,
 		Channel:  msg.Arguments[1].(int32),
 		Note:     msg.Arguments[2].(int32),
