@@ -25,11 +25,39 @@ func assertMessage(t *testing.T, input []byte, want vmc.Message) {
 func TestParseAvailable(t *testing.T) {
 	assertMessage(
 		t,
+		[]byte("/VMC/Ext/OK\x00,i\x00\x00\x00\x00\x00\x01"),
+		&vmc.Available{
+			Loaded:           true,
+			CalibrationState: nil,
+			CalibrationMode:  nil,
+			TrackingStatus:   nil,
+		},
+	)
+
+	calibrated := vmc.CalibrationStateCalibrated
+	mrNormal := vmc.CalibrationModeMrNormal
+
+	assertMessage(
+		t,
 		[]byte("/VMC/Ext/OK\x00,iii\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x03\x00\x00\x00\x01"),
 		&vmc.Available{
 			Loaded:           true,
-			CalibrationState: vmc.CalibrationStateCalibrated,
-			CalibrationMode:  vmc.CalibrationModeMrNormal,
+			CalibrationState: &calibrated,
+			CalibrationMode:  &mrNormal,
+			TrackingStatus:   nil,
+		},
+	)
+
+	trackingStatus := true
+
+	assertMessage(
+		t,
+		[]byte("/VMC/Ext/OK\x00,iiii\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x03\x00\x00\x00\x01\x00\x00\x00\x01"),
+		&vmc.Available{
+			Loaded:           true,
+			CalibrationState: &calibrated,
+			CalibrationMode:  &mrNormal,
+			TrackingStatus:   &trackingStatus,
 		},
 	)
 }
@@ -47,13 +75,24 @@ func TestParseRelativeTime(t *testing.T) {
 func TestParseRootTransform(t *testing.T) {
 	assertMessage(
 		t,
+		[]byte("/VMC/Ext/Root/Pos\x00\x00\x00,sfffffff\x00\x00\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a"),
+		&vmc.RootTransform{
+			Name:       "tst",
+			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
+			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
+			Scale:      nil,
+			Offset:     nil,
+		},
+	)
+	assertMessage(
+		t,
 		[]byte("/VMC/Ext/Root/Pos\x00\x00\x00,sfffffffffffff\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a\x40\x46\x66\x66\x40\x4c\xcc\xcd\x40\x53\x33\x33\x40\x83\x33\x33\x40\x86\x66\x66\x40\x89\x99\x9a"),
 		&vmc.RootTransform{
 			Name:       "tst",
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
-			Scale:      vmc.Vec3{X: 3.1, Y: 3.2, Z: 3.3},
-			Offset:     vmc.Vec3{X: 4.1, Y: 4.2, Z: 4.3},
+			Scale:      &vmc.Vec3{X: 3.1, Y: 3.2, Z: 3.3},
+			Offset:     &vmc.Vec3{X: 4.1, Y: 4.2, Z: 4.3},
 		},
 	)
 }
@@ -239,8 +278,21 @@ func TestParseReceiveEnable(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Rcv\x00\x00\x00\x00,ii\x00\x00\x00\x00\x01\x00\x00\x1f\x90"),
 		&vmc.ReceiveEnable{
-			Enable: true,
-			Port:   8080,
+			Enable:    true,
+			Port:      8080,
+			IPAddress: nil,
+		},
+	)
+
+	ipAddress := "127.0.0.1"
+
+	assertMessage(
+		t,
+		[]byte("/VMC/Ext/Rcv\x00\x00\x00\x00,iis\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x1f\x90127.0.0.1\x00\x00\x00"),
+		&vmc.ReceiveEnable{
+			Enable:    true,
+			Port:      8080,
+			IPAddress: &ipAddress,
 		},
 	)
 }
@@ -265,6 +317,19 @@ func TestParseLocalVrm(t *testing.T) {
 		&vmc.LocalVrm{
 			Path:  "t01",
 			Title: "t02",
+			Hash:  nil,
+		},
+	)
+
+	hash := "t03"
+
+	assertMessage(
+		t,
+		[]byte("/VMC/Ext/VRM\x00\x00\x00\x00,sss\x00\x00\x00\x00t01\x00t02\x00t03\x00"),
+		&vmc.LocalVrm{
+			Path:  "t01",
+			Title: "t02",
+			Hash:  &hash,
 		},
 	)
 }

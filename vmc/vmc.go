@@ -16,17 +16,20 @@ var ErrUnknownAddress = errors.New("unknown address")
 // expected arguments (and therefore defined type tags) for that particular message.
 type InvalidTypeTagsError struct {
 	Found    string
-	Expected string
+	Expected []string
 }
 
 var _ error = (*InvalidTypeTagsError)(nil)
 
 func (e InvalidTypeTagsError) Error() string {
-	if e.Expected == "" {
+	switch len(e.Expected) {
+	case 0:
 		return fmt.Sprintf("invalid type tags `%v`, expected none", e.Found)
+	case 1:
+		return fmt.Sprintf("invalid type tags `%v`, expected `%v`", e.Found, e.Expected[0])
+	default:
+		return fmt.Sprintf("invalid type tags `%v`, expected one of %v", e.Found, e.Expected)
 	}
-
-	return fmt.Sprintf("invalid type tags `%v`, expected `%v`", e.Found, e.Expected)
 }
 
 // InvalidEnumValueError if an enum value of a VMC message is none of the known possible values.

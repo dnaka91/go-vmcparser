@@ -36,7 +36,7 @@ func ExampleParseMessage() {
 		panic("message must be the `Available` VMC message")
 	}
 
-	// Output: &{true Calibrated MrNormal}
+	// Output: &{true Calibrated MrNormal <nil>}
 }
 
 func ExampleUDPServer_Read() {
