@@ -15,7 +15,7 @@ func ExampleReadPacket() {
 	}
 
 	fmt.Println(packet)
-	// Output: Packet { Message "/hi" "s" [hello] }
+	// Output: Packet { Message "/hi" "s" [[104 101 108 108 111]] }
 }
 
 func ExamplePacket_Iterate() {
@@ -72,7 +72,7 @@ func ExampleMessage_useArguments() {
 	}
 
 	msg := packet.Message
-	if msg.TypeTags != "iT" {
+	if string(msg.TypeTags) != "iT" {
 		panic("unexpected type tags")
 	}
 

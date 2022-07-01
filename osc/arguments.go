@@ -51,13 +51,13 @@ func readFloat(buf []byte) (float32, []byte, error) {
 	return math.Float32frombits(binary.BigEndian.Uint32(buf[:lenFloat])), buf[lenFloat:], nil
 }
 
-func readString(buf []byte) (string, []byte, error) {
+func readString(buf []byte) ([]byte, []byte, error) {
 	pos := bytes.IndexByte(buf, 0)
 	if pos == -1 {
-		return "", nil, ErrStringMissingTerminator
+		return nil, nil, ErrStringMissingTerminator
 	}
 
-	value := string(buf[:pos])
+	value := buf[:pos]
 
 	return value, buf[len(value)+pad(len(value)):], nil
 }

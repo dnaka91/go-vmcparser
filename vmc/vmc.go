@@ -15,7 +15,7 @@ var ErrUnknownAddress = errors.New("unknown address")
 // InvalidTypeTagsError happens during VMC message parsing, if the message doesn't contain the
 // expected arguments (and therefore defined type tags) for that particular message.
 type InvalidTypeTagsError struct {
-	Found    string
+	Found    []byte
 	Expected []string
 }
 
@@ -24,11 +24,11 @@ var _ error = (*InvalidTypeTagsError)(nil)
 func (e InvalidTypeTagsError) Error() string {
 	switch len(e.Expected) {
 	case 0:
-		return fmt.Sprintf("invalid type tags `%v`, expected none", e.Found)
+		return fmt.Sprintf("invalid type tags `%v`, expected none", string(e.Found))
 	case 1:
-		return fmt.Sprintf("invalid type tags `%v`, expected `%v`", e.Found, e.Expected[0])
+		return fmt.Sprintf("invalid type tags `%v`, expected `%v`", string(e.Found), e.Expected[0])
 	default:
-		return fmt.Sprintf("invalid type tags `%v`, expected one of %v", e.Found, e.Expected)
+		return fmt.Sprintf("invalid type tags `%v`, expected one of %v", string(e.Found), e.Expected)
 	}
 }
 
@@ -58,7 +58,7 @@ type Message interface {
 // The list of supported messages is not complete yet, but most of the "marionette" messages are
 // implemented.
 func ParseMessage(msg *osc.Message) (Message, error) {
-	switch msg.Address {
+	switch string(msg.Address) {
 	case AddressAvailable:
 		return parseAvailable(msg)
 	case AddressRelativeTime:

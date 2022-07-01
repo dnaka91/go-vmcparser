@@ -21,8 +21,8 @@ func TestOscillatorSample(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/oscillator/4/frequency",
-			TypeTags:  "f",
+			Address:   []byte("/oscillator/4/frequency"),
+			TypeTags:  []byte("f"),
 			Arguments: []interface{}{float32(440)},
 			Raw:       input,
 		},
@@ -34,12 +34,12 @@ func TestFooSample(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:  "/foo",
-			TypeTags: "iisff",
+			Address:  []byte("/foo"),
+			TypeTags: []byte("iisff"),
 			Arguments: []interface{}{
 				int32(1000),
 				int32(-1),
-				"hello",
+				[]byte("hello"),
 				float32(1.234),
 				float32(5.678),
 			},
@@ -56,9 +56,9 @@ func TestBundleWithMessage(t *testing.T) {
 			TimeTag: 1,
 			Contents: []osc.Packet{{
 				Message: &osc.Message{
-					Address:   "/",
-					TypeTags:  "s",
-					Arguments: []interface{}{"hi"},
+					Address:   []byte("/"),
+					TypeTags:  []byte("s"),
+					Arguments: []interface{}{[]byte("hi")},
 					Raw:       []byte("/\x00\x00\x00,s\x00\x00hi\x00\x00"),
 				},
 			}},
@@ -69,9 +69,9 @@ func TestBundleWithMessage(t *testing.T) {
 func TestPacketIterator(t *testing.T) {
 	input := []byte("#bundle\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x0c/\x00\x00\x00,s\x00\x00hi\x00\x00")
 	want := &osc.Message{
-		Address:   "/",
-		TypeTags:  "s",
-		Arguments: []interface{}{"hi"},
+		Address:   []byte("/"),
+		TypeTags:  []byte("s"),
+		Arguments: []interface{}{[]byte("hi")},
 		Raw:       []byte("/\x00\x00\x00,s\x00\x00hi\x00\x00"),
 	}
 
@@ -95,9 +95,9 @@ func TestPacketIterator(t *testing.T) {
 func TestPacketToMessages(t *testing.T) {
 	input := []byte("#bundle\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x0c/\x00\x00\x00,s\x00\x00hi\x00\x00")
 	want := []*osc.Message{{
-		Address:   "/",
-		TypeTags:  "s",
-		Arguments: []interface{}{"hi"},
+		Address:   []byte("/"),
+		TypeTags:  []byte("s"),
+		Arguments: []interface{}{[]byte("hi")},
 		Raw:       []byte("/\x00\x00\x00,s\x00\x00hi\x00\x00"),
 	}}
 

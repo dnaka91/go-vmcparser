@@ -77,7 +77,7 @@ func TestParseRootTransform(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Root/Pos\x00\x00\x00,sfffffff\x00\x00\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a"),
 		&vmc.RootTransform{
-			Name:       "tst",
+			Name:       []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
 			Scale:      nil,
@@ -88,7 +88,7 @@ func TestParseRootTransform(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Root/Pos\x00\x00\x00,sfffffffffffff\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a\x40\x46\x66\x66\x40\x4c\xcc\xcd\x40\x53\x33\x33\x40\x83\x33\x33\x40\x86\x66\x66\x40\x89\x99\x9a"),
 		&vmc.RootTransform{
-			Name:       "tst",
+			Name:       []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
 			Scale:      &vmc.Vec3{X: 3.1, Y: 3.2, Z: 3.3},
@@ -102,7 +102,7 @@ func TestParseBoneTransform(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Bone/Pos\x00\x00\x00,sfffffff\x00\x00\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a"),
 		&vmc.BoneTransform{
-			Name:       "tst",
+			Name:       []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
 		},
@@ -114,7 +114,7 @@ func TestParseBlendShapeProxyValue(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Blend/Val\x00\x00,sf\x00tst\x00\x40\xa0\x00\x00"),
 		&vmc.BlendShapeProxyValue{
-			Name:  "tst",
+			Name:  []byte("tst"),
 			Value: 5,
 		},
 	)
@@ -133,7 +133,7 @@ func TestParseCameraTransform(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Cam\x00\x00\x00\x00,sffffffff\x00\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a\x40\xa0\x00\x00"),
 		&vmc.CameraTransform{
-			Name:       "tst",
+			Name:       []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
 			FOV:        5,
@@ -147,7 +147,7 @@ func TestParseControllerInput(t *testing.T) {
 		[]byte("/VMC/Ext/Con\x00\x00\x00\x00,isiiifff\x00\x00\x00\x00\x00\x00\x01tst\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66"),
 		&vmc.ControllerInput{
 			Active:  vmc.ControllerActivePress,
-			Name:    "tst",
+			Name:    []byte("tst"),
 			IsLeft:  true,
 			IsTouch: true,
 			IsAxis:  false,
@@ -162,7 +162,7 @@ func TestParseKeyboardInput(t *testing.T) {
 		[]byte("/VMC/Ext/Key\x00\x00\x00\x00,isi\x00\x00\x00\x00\x00\x00\x00\x01tst\x00\x00\x00\x00\x05"),
 		&vmc.KeyboardInput{
 			Active:  true,
-			Name:    "tst",
+			Name:    []byte("tst"),
 			KeyCode: 5,
 		},
 	)
@@ -210,7 +210,7 @@ func TestParseDeviceTransform(t *testing.T) {
 		&vmc.DeviceTransform{
 			Device:     "Hmd",
 			Local:      false,
-			Serial:     "tst",
+			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
 		},
@@ -221,7 +221,7 @@ func TestParseDeviceTransform(t *testing.T) {
 		&vmc.DeviceTransform{
 			Device:     "Con",
 			Local:      false,
-			Serial:     "tst",
+			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
 		},
@@ -232,7 +232,7 @@ func TestParseDeviceTransform(t *testing.T) {
 		&vmc.DeviceTransform{
 			Device:     "Tra",
 			Local:      false,
-			Serial:     "tst",
+			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
 		},
@@ -244,7 +244,7 @@ func TestParseDeviceTransform(t *testing.T) {
 		&vmc.DeviceTransform{
 			Device:     "Hmd",
 			Local:      true,
-			Serial:     "tst",
+			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
 		},
@@ -255,7 +255,7 @@ func TestParseDeviceTransform(t *testing.T) {
 		&vmc.DeviceTransform{
 			Device:     "Con",
 			Local:      true,
-			Serial:     "tst",
+			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
 		},
@@ -266,7 +266,7 @@ func TestParseDeviceTransform(t *testing.T) {
 		&vmc.DeviceTransform{
 			Device:     "Tra",
 			Local:      true,
-			Serial:     "tst",
+			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
 		},
@@ -284,7 +284,7 @@ func TestParseReceiveEnable(t *testing.T) {
 		},
 	)
 
-	ipAddress := "127.0.0.1"
+	ipAddress := []byte("127.0.0.1")
 
 	assertMessage(
 		t,
@@ -302,7 +302,7 @@ func TestParseDirectionalLight(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Light\x00\x00,sfffffffffff\x00\x00\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a\x40\x46\x66\x66\x40\x4c\xcc\xcd\x40\x53\x33\x33\x40\x59\x99\x9a"),
 		&vmc.DirectionalLight{
-			Name:       "tst",
+			Name:       []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
 			Color:      vmc.Vec4{X: 3.1, Y: 3.2, Z: 3.3, W: 3.4},
@@ -315,20 +315,20 @@ func TestParseLocalVrm(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/VRM\x00\x00\x00\x00,ss\x00t01\x00t02\x00"),
 		&vmc.LocalVrm{
-			Path:  "t01",
-			Title: "t02",
+			Path:  []byte("t01"),
+			Title: []byte("t02"),
 			Hash:  nil,
 		},
 	)
 
-	hash := "t03"
+	hash := []byte("t03")
 
 	assertMessage(
 		t,
 		[]byte("/VMC/Ext/VRM\x00\x00\x00\x00,sss\x00\x00\x00\x00t01\x00t02\x00t03\x00"),
 		&vmc.LocalVrm{
-			Path:  "t01",
-			Title: "t02",
+			Path:  []byte("t01"),
+			Title: []byte("t02"),
 			Hash:  &hash,
 		},
 	)
@@ -339,8 +339,8 @@ func TestParseRemoteVrm(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Remote\x00,ss\x00tst\x00{}\x00\x00"),
 		&vmc.RemoteVrm{
-			Service: "tst",
-			JSON:    "{}",
+			Service: []byte("tst"),
+			JSON:    []byte("{}"),
 		},
 	)
 }
@@ -350,7 +350,7 @@ func TestParseOptionString(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Opt\x00\x00\x00\x00,s\x00\x00tst\x00"),
 		&vmc.OptionString{
-			Option: "tst",
+			Option: []byte("tst"),
 		},
 	)
 }
@@ -383,7 +383,7 @@ func TestParseLoadedSettingPath(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Config\x00,s\x00\x00tst\x00"),
 		&vmc.LoadedSettingPath{
-			Path: "tst",
+			Path: []byte("tst"),
 		},
 	)
 }

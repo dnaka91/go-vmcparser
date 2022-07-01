@@ -11,8 +11,8 @@ func TestParseInt(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "i",
+			Address:   []byte("/"),
+			TypeTags:  []byte("i"),
 			Arguments: []interface{}{int32(5)},
 			Raw:       input,
 		},
@@ -24,8 +24,8 @@ func TestParseFloat(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "f",
+			Address:   []byte("/"),
+			TypeTags:  []byte("f"),
 			Arguments: []interface{}{float32(5)},
 			Raw:       input,
 		},
@@ -37,9 +37,9 @@ func TestParseString(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "s",
-			Arguments: []interface{}{"tst"},
+			Address:   []byte("/"),
+			TypeTags:  []byte("s"),
+			Arguments: []interface{}{[]byte("tst")},
 			Raw:       input,
 		},
 	})
@@ -50,8 +50,8 @@ func TestParseBlob(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "b",
+			Address:   []byte("/"),
+			TypeTags:  []byte("b"),
 			Arguments: []interface{}{[]byte{1, 2, 3}},
 			Raw:       input,
 		},
@@ -63,8 +63,8 @@ func TestParseInt64(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "h",
+			Address:   []byte("/"),
+			TypeTags:  []byte("h"),
 			Arguments: []interface{}{int64(5)},
 			Raw:       input,
 		},
@@ -76,8 +76,8 @@ func TestParseTimeTag(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "t",
+			Address:   []byte("/"),
+			TypeTags:  []byte("t"),
 			Arguments: []interface{}{int64(5)},
 			Raw:       input,
 		},
@@ -89,8 +89,8 @@ func TestParseDouble(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "d",
+			Address:   []byte("/"),
+			TypeTags:  []byte("d"),
 			Arguments: []interface{}{float64(5)},
 			Raw:       input,
 		},
@@ -102,8 +102,8 @@ func TestParseChar(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "c",
+			Address:   []byte("/"),
+			TypeTags:  []byte("c"),
 			Arguments: []interface{}{rune('a')},
 			Raw:       input,
 		},
@@ -115,8 +115,8 @@ func TestParseRgba(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "r",
+			Address:   []byte("/"),
+			TypeTags:  []byte("r"),
 			Arguments: []interface{}{[4]byte{1, 2, 3, 4}},
 			Raw:       input,
 		},
@@ -128,8 +128,8 @@ func TestParseMidi(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "m",
+			Address:   []byte("/"),
+			TypeTags:  []byte("m"),
 			Arguments: []interface{}{[4]byte{1, 2, 3, 4}},
 			Raw:       input,
 		},
@@ -141,8 +141,8 @@ func TestParseTrue(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "T",
+			Address:   []byte("/"),
+			TypeTags:  []byte("T"),
 			Arguments: []interface{}{true},
 			Raw:       input,
 		},
@@ -154,8 +154,8 @@ func TestParseFalse(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "F",
+			Address:   []byte("/"),
+			TypeTags:  []byte("F"),
 			Arguments: []interface{}{false},
 			Raw:       input,
 		},
@@ -167,8 +167,8 @@ func TestParseNil(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "N",
+			Address:   []byte("/"),
+			TypeTags:  []byte("N"),
 			Arguments: []interface{}{nil},
 			Raw:       input,
 		},
@@ -180,8 +180,8 @@ func TestParseInfinitum(t *testing.T) {
 
 	assertPacket(t, input, &osc.Packet{
 		Message: &osc.Message{
-			Address:   "/",
-			TypeTags:  "|",
+			Address:   []byte("/"),
+			TypeTags:  []byte("|"),
 			Arguments: []interface{}{nil},
 			Raw:       input,
 		},

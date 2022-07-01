@@ -21,7 +21,7 @@ var (
 
 // UnknownTypeTagError occurs when an unknown type tag was discovered during parsing.
 type UnknownTypeTagError struct {
-	Tag rune // Tag is the unexpected type tag.
+	Tag byte // Tag is the unexpected type tag.
 }
 
 var _ error = (*UnknownTypeTagError)(nil)
@@ -159,13 +159,14 @@ func ReadPacket(buf []byte) (*Packet, []byte, error) {
 // easy casting of the type. For example, with type tag `sf`, it is guaranteed that the first
 // argument is a Go `string` and the second argument is a Go `float32`.
 //
-// Mapping from type tag to Go types is as follows:
+// Mapping from type tag to Go types is as follows. Note that even strings are passed as byte
+// slices. This is, to avoid any extra allocations.
 //
 //     # Standard OSC type tags.
 //
 //     i -> int32
 //     f -> float32
-//     s -> string
+//     s -> []byte
 //     b -> []byte
 //
 //     # Extended (non-standard) type tags.
@@ -173,7 +174,7 @@ func ReadPacket(buf []byte) (*Packet, []byte, error) {
 //     h -> int64
 //     t -> int64
 //     d -> float64
-//     S -> string
+//     S -> []byte
 //     c -> rune
 //     r -> [4]byte
 //     m -> [4]byte
@@ -188,8 +189,8 @@ func ReadPacket(buf []byte) (*Packet, []byte, error) {
 // This is especially helpful, when the message is part of a bundle, and only some of them are
 // supposed to be forwarded the target, instead of the dropping the whole bundle.
 type Message struct {
-	Address   string        // Address is the message address
-	TypeTags  string        // TypeTags contains OSC type tags for each argument
+	Address   []byte        // Address is the message address
+	TypeTags  []byte        // TypeTags contains OSC type tags for each argument
 	Arguments []interface{} // Arguments contains all parsed arguments
 	Raw       []byte        // Raw is the un-parsed message content
 }
@@ -197,7 +198,12 @@ type Message struct {
 var _ fmt.Stringer = (*Message)(nil)
 
 func (m Message) String() string {
-	return fmt.Sprintf("Message \"%v\" \"%v\" %v", m.Address, m.TypeTags, m.Arguments)
+	return fmt.Sprintf(
+		"Message \"%v\" \"%v\" %v",
+		string(m.Address),
+		string(m.TypeTags),
+		m.Arguments,
+	)
 }
 
 func readMessage(buf []byte) (*Message, []byte, error) {
@@ -337,7 +343,7 @@ func readBundle(buf []byte) (*Bundle, []byte, error) {
 	}
 	buf = newBuf
 
-	if ident != "#bundle" {
+	if string(ident) != "#bundle" {
 		return nil, nil, ErrInvalidBundleIdentifier
 	}
 
