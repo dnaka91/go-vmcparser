@@ -347,6 +347,12 @@ func (b Bundle) String() string {
 	return fmt.Sprintf("Bundle %v %v", b.TimeTag, b.Contents)
 }
 
+// IsBundle tells whether any raw OCS packet is a bundle. Will return false, if the input is empty
+// as well.
+func IsBundle(buf []byte) bool {
+	return len(buf) > 0 && buf[0] == '#'
+}
+
 func readBundle(buf []byte) (*Bundle, []byte, error) {
 	ident, newBuf, err := ReadString(buf)
 	if err != nil {

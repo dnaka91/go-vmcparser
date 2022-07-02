@@ -10,6 +10,11 @@ import (
 // unknown/unsupported VMC message, or describes a non-VMC message.
 var ErrUnknownAddress = errors.New("unknown address")
 
+// ErrFiltered happens when a list of address filters is passed to ParseMessage, and the given raw
+// messsage didn't match any of the addresses. That means, it is not an actual error, but instead
+// signals, that (any further) parsing of the content was cancelled due to the user-provided filter.
+var ErrFiltered = errors.New("address filtered by user")
+
 // InvalidTypeTagsError happens during VMC message parsing, if the message doesn't contain the
 // expected arguments (and therefore defined type tags) for that particular message.
 type InvalidTypeTagsError struct {
@@ -70,12 +75,20 @@ type Message interface {
 //
 // The list of supported messages is not complete yet, but most of the "marionette" messages are
 // implemented.
-func ParseMessage(data []byte) (Message, error) {
+//
+// Parsing of a message can be limited with optional address filters. If passed, and the message's
+// address didn't match any of the filters, then all further processing is stopped and a ErrFiltered
+// error is returned.
+func ParseMessage(data []byte, addressFilters ...string) (Message, error) {
 	address, newData, err := getString(data)
 	if err != nil {
 		return nil, err
 	}
 	data = newData
+
+	if !filterAddress(address, addressFilters) {
+		return nil, ErrFiltered
+	}
 
 	tags, newData, err := getTypeTags(data)
 	if err != nil {
@@ -134,4 +147,18 @@ func ParseMessage(data []byte) (Message, error) {
 	default:
 		return nil, ErrUnknownAddress
 	}
+}
+
+func filterAddress(address []byte, filters []string) bool {
+	if len(filters) == 0 {
+		return true
+	}
+
+	for _, filter := range filters {
+		if string(address) == filter {
+			return true
+		}
+	}
+
+	return false
 }
