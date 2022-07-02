@@ -4,8 +4,6 @@ package vmc
 import (
 	"errors"
 	"fmt"
-
-	"github.com/dnaka91/go-vmcparser/osc"
 )
 
 // ErrUnknownAddress can happen during ParseMessage, if the message address describes either an
@@ -44,6 +42,24 @@ func (e InvalidEnumValueError) Error() string {
 	return fmt.Sprintf("invalid value for %v: %v", e.Name, e.Value)
 }
 
+type InvalidBufferLengthError struct {
+	Length   int
+	Expected []int
+}
+
+var _ error = (*InvalidBufferLengthError)(nil)
+
+func (e InvalidBufferLengthError) Error() string {
+	switch len(e.Expected) {
+	case 0:
+		return fmt.Sprintf("got %d bytes of data, expected none", e.Length)
+	case 1:
+		return fmt.Sprintf("got %d bytes of data, expected exactly %d", e.Length, e.Expected[0])
+	default:
+		return fmt.Sprintf("got %d bytes of data, expected one of %v", e.Length, e.Expected)
+	}
+}
+
 // Message is a marker for any type that is considered a VMC message.
 type Message interface {
 	isMessage()
@@ -57,55 +73,67 @@ type Message interface {
 //
 // The list of supported messages is not complete yet, but most of the "marionette" messages are
 // implemented.
-func ParseMessage(msg *osc.Message) (Message, error) {
-	switch string(msg.Address) {
+func ParseMessage(data []byte) (Message, error) {
+	address, newData, err := getString(data)
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
+	tags, newData, err := getTypeTags(data)
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
+	switch string(address) {
 	case AddressAvailable:
-		return parseAvailable(msg)
+		return parseAvailable(tags, data)
 	case AddressRelativeTime:
-		return parseRelativeTime(msg)
+		return parseRelativeTime(tags, data)
 	case AddressRootTransform:
-		return parseRootTransform(msg)
+		return parseRootTransform(tags, data)
 	case AddressBoneTransform:
-		return parseBoneTransform(msg)
+		return parseBoneTransform(tags, data)
 	case AddressBlendShapeProxyValue:
-		return parseBlendShapeProxyValue(msg)
+		return parseBlendShapeProxyValue(tags, data)
 	case AddressBlendShapeProxyApply:
-		return parseBlendShapeProxyApply(msg)
+		return parseBlendShapeProxyApply(tags, data)
 	case AddressCameraTransform:
-		return parseCameraTransform(msg)
+		return parseCameraTransform(tags, data)
 	case AddressControllerInput:
-		return parseControllerInput(msg)
+		return parseControllerInput(tags, data)
 	case AddressKeyboardInput:
-		return parseKeyboardInput(msg)
+		return parseKeyboardInput(tags, data)
 	case AddressMidiNoteInput:
-		return parseMidiNoteInput(msg)
+		return parseMidiNoteInput(tags, data)
 	case AddressMidiCCValueInput:
-		return parseMidiCCValueInput(msg)
+		return parseMidiCCValueInput(tags, data)
 	case AddressMidiCCButtonInput:
-		return parseMidiCCButtonInput(msg)
+		return parseMidiCCButtonInput(tags, data)
 	case AddressDeviceTransformHmd,
 		AddressDeviceTransformCon,
 		AddressDeviceTransformTra,
 		AddressDeviceTransformHmdLocal,
 		AddressDeviceTransformConLocal,
 		AddressDeviceTransformTraLocal:
-		return parseDeviceTransform(msg)
+		return parseDeviceTransform(tags, data)
 	case AddressReceiveEnable:
-		return parseReceiveEnable(msg)
+		return parseReceiveEnable(tags, data)
 	case AddressDirectionalLight:
-		return parseDirectionalLight(msg)
+		return parseDirectionalLight(tags, data)
 	case AddressLocalVrm:
-		return parseLocalVrm(msg)
+		return parseLocalVrm(tags, data)
 	case AddressRemoteVrm:
-		return parseRemoteVrm(msg)
+		return parseRemoteVrm(tags, data)
 	case AddressOptionString:
-		return parseOptionString(msg)
+		return parseOptionString(tags, data)
 	case AddressBackgroundColor:
-		return parseBackgroundColor(msg)
+		return parseBackgroundColor(tags, data)
 	case AddressWindowAttribute:
-		return parseWindowAttribute(msg)
+		return parseWindowAttribute(tags, data)
 	case AddressLoadedSettingPath:
-		return parseLoadedSettingPath(msg)
+		return parseLoadedSettingPath(tags, data)
 	default:
 		return nil, ErrUnknownAddress
 	}

@@ -3,21 +3,14 @@ package vmc_test
 import (
 	"testing"
 
-	"github.com/dnaka91/go-vmcparser/osc"
 	"github.com/dnaka91/go-vmcparser/vmc"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func assertMessage(t *testing.T, input []byte, want vmc.Message) {
 	t.Helper()
 
-	packet, buf, err := osc.ReadPacket(input)
-	require.NoError(t, err)
-	require.Empty(t, buf)
-	require.NotNil(t, packet.Message)
-
-	got, err := vmc.ParseMessage(packet.Message)
+	got, err := vmc.ParseMessage(input)
 	assert.NoError(t, err)
 	assert.Equal(t, want, got)
 }
@@ -208,8 +201,6 @@ func TestParseDeviceTransform(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Hmd/Pos\x00\x00\x00\x00,sfffffff\x00\x00\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a"),
 		&vmc.DeviceTransform{
-			Device:     "Hmd",
-			Local:      false,
 			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
@@ -219,8 +210,6 @@ func TestParseDeviceTransform(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Con/Pos\x00\x00\x00\x00,sfffffff\x00\x00\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a"),
 		&vmc.DeviceTransform{
-			Device:     "Con",
-			Local:      false,
 			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
@@ -230,8 +219,6 @@ func TestParseDeviceTransform(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Tra/Pos\x00\x00\x00\x00,sfffffff\x00\x00\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a"),
 		&vmc.DeviceTransform{
-			Device:     "Tra",
-			Local:      false,
 			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
@@ -242,8 +229,6 @@ func TestParseDeviceTransform(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Hmd/Pos/Local\x00\x00,sfffffff\x00\x00\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a"),
 		&vmc.DeviceTransform{
-			Device:     "Hmd",
-			Local:      true,
 			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
@@ -253,8 +238,6 @@ func TestParseDeviceTransform(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Con/Pos/Local\x00\x00,sfffffff\x00\x00\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a"),
 		&vmc.DeviceTransform{
-			Device:     "Con",
-			Local:      true,
 			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},
@@ -264,8 +247,6 @@ func TestParseDeviceTransform(t *testing.T) {
 		t,
 		[]byte("/VMC/Ext/Tra/Pos/Local\x00\x00,sfffffff\x00\x00\x00tst\x00\x3f\x8c\xcc\xcd\x3f\x99\x99\x9a\x3f\xa6\x66\x66\x40\x06\x66\x66\x40\x0c\xcc\xcd\x40\x13\x33\x33\x40\x19\x99\x9a"),
 		&vmc.DeviceTransform{
-			Device:     "Tra",
-			Local:      true,
 			Serial:     []byte("tst"),
 			Position:   vmc.Vec3{X: 1.1, Y: 1.2, Z: 1.3},
 			Quaternion: vmc.Vec4{X: 2.1, Y: 2.2, Z: 2.3, W: 2.4},

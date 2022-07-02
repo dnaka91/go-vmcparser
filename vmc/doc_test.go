@@ -5,7 +5,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/dnaka91/go-vmcparser/osc"
 	"github.com/dnaka91/go-vmcparser/vmc"
 )
 
@@ -13,17 +12,8 @@ func ExampleParseMessage() {
 	// A VMC "Available" message in raw form.
 	raw := []byte("/VMC/Ext/OK\x00,iii\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x03\x00\x00\x00\x01")
 
-	// First, we read the raw content into a valid OSC message.
-	packet, _, err := osc.ReadPacket(raw)
-	if err != nil {
-		panic(packet)
-	}
-	if packet.Message == nil {
-		panic("packet must contain an OSC message")
-	}
-
-	// Then, we parse the OSC message into a VMC message.
-	message, err := vmc.ParseMessage(packet.Message)
+	// Parse the raw content into a VMC message.
+	message, err := vmc.ParseMessage(raw)
 	if err != nil {
 		panic(err)
 	}

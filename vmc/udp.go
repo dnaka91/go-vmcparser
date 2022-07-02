@@ -71,7 +71,7 @@ func (s *UDPServer) Read(timeout time.Duration, handler UDPHandler) error {
 		buf = newBuf
 
 		err = packet.Iterate(func(msg *osc.Message) error {
-			message, err := ParseMessage(msg)
+			message, err := ParseMessage(msg.Raw)
 			if errors.Is(err, ErrUnknownAddress) {
 				// skip any unknown VMC messages.
 				return nil

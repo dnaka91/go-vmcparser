@@ -51,7 +51,9 @@ func readFloat(buf []byte) (float32, []byte, error) {
 	return math.Float32frombits(binary.BigEndian.Uint32(buf[:lenFloat])), buf[lenFloat:], nil
 }
 
-func readString(buf []byte) ([]byte, []byte, error) {
+// ReadString reads the string content from the given raw OSC encoded content, and returns it
+// together with the advanced buffer and potential error if decoding failed.
+func ReadString(buf []byte) ([]byte, []byte, error) {
 	pos := bytes.IndexByte(buf, 0)
 	if pos == -1 {
 		return nil, nil, ErrStringMissingTerminator

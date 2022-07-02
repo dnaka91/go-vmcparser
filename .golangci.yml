@@ -29,6 +29,9 @@ issues:
     - text: ^cognitive complexity \d+ of func `readMessage` is high
       linters:
         - gocognit
-    - text: ^calculated cyclomatic complexity for function (readMessage|ParseMessage) is
+    - text: ^calculated cyclomatic complexity for function (readMessage|ParseMessage|parseAvailable) is
       linters:
         - cyclop
+    - text: '^mnd: Magic number: \d+, in <condition> detected'
+      linters:
+        - gomnd

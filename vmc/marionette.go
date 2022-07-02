@@ -2,8 +2,6 @@ package vmc
 
 import (
 	"fmt"
-
-	"github.com/dnaka91/go-vmcparser/osc"
 )
 
 // OSC message addresses for the VMC marionette messages.
@@ -104,43 +102,52 @@ func (m CalibrationMode) String() string {
 	}
 }
 
-func parseAvailable(msg *osc.Message) (*Available, error) {
+func parseAvailable(tags, data []byte) (*Available, error) {
 	const (
 		typeTagsV1   = "i"
 		typeTagsV2_5 = "iii"
 		typeTagsV2_7 = "iiii"
 	)
 
-	if string(msg.TypeTags) != typeTagsV1 &&
-		string(msg.TypeTags) != typeTagsV2_5 &&
-		string(msg.TypeTags) != typeTagsV2_7 {
+	if string(tags) != typeTagsV1 &&
+		string(tags) != typeTagsV2_5 &&
+		string(tags) != typeTagsV2_7 {
 		return nil, InvalidTypeTagsError{
-			Found:    msg.TypeTags,
+			Found:    tags,
 			Expected: []string{typeTagsV1, typeTagsV2_5, typeTagsV2_7},
 		}
 	}
 
+	if len(data) != 4 && len(data) != 12 && len(data) != 16 {
+		return nil, InvalidBufferLengthError{
+			Length:   len(data),
+			Expected: []int{4, 8, 12},
+		}
+	}
+
 	value := &Available{
-		Loaded:           msg.Arguments[0].(int32) == 1,
+		Loaded:           getInt32(data[0:4]) == 1,
 		CalibrationState: nil,
 		CalibrationMode:  nil,
 		TrackingStatus:   nil,
 	}
 
-	if len(msg.Arguments) >= len(typeTagsV2_5) {
-		calibrationState := CalibrationState(msg.Arguments[1].(int32))
+	if len(data) == 12 || len(data) == 16 {
+		rawValue := getInt32(data[4:8])
+		calibrationState := CalibrationState(rawValue)
 		if !calibrationState.isValid() {
 			return nil, InvalidEnumValueError{
 				Name:  "calibration state",
-				Value: msg.Arguments[1].(int32),
+				Value: rawValue,
 			}
 		}
 
-		calibrationMode := CalibrationMode(msg.Arguments[2].(int32))
+		rawValue = getInt32(data[8:12])
+		calibrationMode := CalibrationMode(rawValue)
 		if !calibrationMode.isValid() {
 			return nil, InvalidEnumValueError{
 				Name:  "calibration mode",
-				Value: msg.Arguments[2].(int32),
+				Value: rawValue,
 			}
 		}
 
@@ -148,8 +155,8 @@ func parseAvailable(msg *osc.Message) (*Available, error) {
 		value.CalibrationMode = &calibrationMode
 	}
 
-	if len(msg.Arguments) >= len(typeTagsV2_7) {
-		trackingStatus := msg.Arguments[3].(int32) == 1
+	if len(data) == 16 {
+		trackingStatus := getInt32(data[12:16]) == 1
 		value.TrackingStatus = &trackingStatus
 	}
 
@@ -166,13 +173,17 @@ func (r *RelativeTime) Address() string {
 	return AddressRelativeTime
 }
 
-func parseRelativeTime(msg *osc.Message) (*RelativeTime, error) {
-	if string(msg.TypeTags) != "f" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"f"}}
+func parseRelativeTime(tags, data []byte) (*RelativeTime, error) {
+	if string(tags) != "f" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"f"}}
+	}
+
+	if len(data) != 4 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{4}}
 	}
 
 	return &RelativeTime{
-		Time: msg.Arguments[0].(float32),
+		Time: getFloat32(data[0:4]),
 	}, nil
 }
 
@@ -190,47 +201,45 @@ func (r *RootTransform) Address() string {
 	return AddressRootTransform
 }
 
-func parseRootTransform(msg *osc.Message) (*RootTransform, error) {
+func parseRootTransform(tags, data []byte) (*RootTransform, error) {
 	const (
 		typeTagsV2_0 = "sfffffff"
 		typeTagsV2_1 = "sfffffffffffff"
 	)
-	if string(msg.TypeTags) != typeTagsV2_0 &&
-		string(msg.TypeTags) != typeTagsV2_1 {
+	if string(tags) != typeTagsV2_0 &&
+		string(tags) != typeTagsV2_1 {
 		return nil, InvalidTypeTagsError{
-			Found:    msg.TypeTags,
+			Found:    tags,
 			Expected: []string{typeTagsV2_0, typeTagsV2_1},
 		}
 	}
 
-	value := &RootTransform{
-		Name: msg.Arguments[0].([]byte),
-		Position: Vec3{
-			X: msg.Arguments[1].(float32),
-			Y: msg.Arguments[2].(float32),
-			Z: msg.Arguments[3].(float32),
-		},
-		Quaternion: Vec4{
-			X: msg.Arguments[4].(float32),
-			Y: msg.Arguments[5].(float32),
-			Z: msg.Arguments[6].(float32),
-			W: msg.Arguments[7].(float32),
-		},
-		Scale:  nil,
-		Offset: nil,
+	name, newData, err := getString(data)
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
+	if len(data) != 28 && len(data) != 52 {
+		return nil, InvalidBufferLengthError{
+			Length:   len(data),
+			Expected: []int{28, 52},
+		}
 	}
 
-	if len(msg.Arguments) >= len(typeTagsV2_1) {
-		value.Scale = &Vec3{
-			X: msg.Arguments[8].(float32),
-			Y: msg.Arguments[9].(float32),
-			Z: msg.Arguments[10].(float32),
-		}
-		value.Offset = &Vec3{
-			X: msg.Arguments[11].(float32),
-			Y: msg.Arguments[12].(float32),
-			Z: msg.Arguments[13].(float32),
-		}
+	value := &RootTransform{
+		Name:       name,
+		Position:   getVec3(data[0:12]),
+		Quaternion: getVec4(data[12:28]),
+		Scale:      nil,
+		Offset:     nil,
+	}
+
+	if len(data) == 52 {
+		scale := getVec3(data[28:40])
+		offset := getVec3(data[40:52])
+		value.Scale = &scale
+		value.Offset = &offset
 	}
 
 	return value, nil
@@ -248,24 +257,25 @@ func (b *BoneTransform) Address() string {
 	return AddressBoneTransform
 }
 
-func parseBoneTransform(msg *osc.Message) (*BoneTransform, error) {
-	if string(msg.TypeTags) != "sfffffff" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"sfffffff"}}
+func parseBoneTransform(tags, data []byte) (*BoneTransform, error) {
+	if string(tags) != "sfffffff" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"sfffffff"}}
+	}
+
+	name, newData, err := getString(data)
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
+	if len(data) != 28 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{28}}
 	}
 
 	return &BoneTransform{
-		Name: msg.Arguments[0].([]byte),
-		Position: Vec3{
-			X: msg.Arguments[1].(float32),
-			Y: msg.Arguments[2].(float32),
-			Z: msg.Arguments[3].(float32),
-		},
-		Quaternion: Vec4{
-			X: msg.Arguments[4].(float32),
-			Y: msg.Arguments[5].(float32),
-			Z: msg.Arguments[6].(float32),
-			W: msg.Arguments[7].(float32),
-		},
+		Name:       name,
+		Position:   getVec3(data[0:12]),
+		Quaternion: getVec4(data[12:28]),
 	}, nil
 }
 
@@ -280,14 +290,24 @@ func (b *BlendShapeProxyValue) Address() string {
 	return AddressBlendShapeProxyValue
 }
 
-func parseBlendShapeProxyValue(msg *osc.Message) (*BlendShapeProxyValue, error) {
-	if string(msg.TypeTags) != "sf" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"sf"}}
+func parseBlendShapeProxyValue(tags, data []byte) (*BlendShapeProxyValue, error) {
+	if string(tags) != "sf" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"sf"}}
+	}
+
+	name, newData, err := getString(data)
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
+	if len(data) != 4 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{4}}
 	}
 
 	return &BlendShapeProxyValue{
-		Name:  msg.Arguments[0].([]byte),
-		Value: msg.Arguments[1].(float32),
+		Name:  name,
+		Value: getFloat32(data[0:4]),
 	}, nil
 }
 
@@ -299,9 +319,13 @@ func (b *BlendShapeProxyApply) Address() string {
 	return AddressBlendShapeProxyApply
 }
 
-func parseBlendShapeProxyApply(msg *osc.Message) (*BlendShapeProxyApply, error) {
-	if string(msg.TypeTags) != "" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: nil}
+func parseBlendShapeProxyApply(tags, data []byte) (*BlendShapeProxyApply, error) {
+	if string(tags) != "" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: nil}
+	}
+
+	if len(data) != 0 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: nil}
 	}
 
 	return &BlendShapeProxyApply{}, nil
@@ -320,25 +344,26 @@ func (c *CameraTransform) Address() string {
 	return AddressCameraTransform
 }
 
-func parseCameraTransform(msg *osc.Message) (*CameraTransform, error) {
-	if string(msg.TypeTags) != "sffffffff" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"sffffffff"}}
+func parseCameraTransform(tags, data []byte) (*CameraTransform, error) {
+	if string(tags) != "sffffffff" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"sffffffff"}}
+	}
+
+	name, newData, err := getString(data)
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
+	if len(data) != 32 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{32}}
 	}
 
 	return &CameraTransform{
-		Name: msg.Arguments[0].([]byte),
-		Position: Vec3{
-			X: msg.Arguments[1].(float32),
-			Y: msg.Arguments[2].(float32),
-			Z: msg.Arguments[3].(float32),
-		},
-		Quaternion: Vec4{
-			X: msg.Arguments[4].(float32),
-			Y: msg.Arguments[5].(float32),
-			Z: msg.Arguments[6].(float32),
-			W: msg.Arguments[7].(float32),
-		},
-		FOV: msg.Arguments[8].(float32),
+		Name:       name,
+		Position:   getVec3(data[0:12]),
+		Quaternion: getVec4(data[12:28]),
+		FOV:        getFloat32(data[28:32]),
 	}, nil
 }
 
@@ -370,30 +395,41 @@ func (a ControllerActive) isValid() bool {
 	return a <= ControllerActiveChangeAxis
 }
 
-func parseControllerInput(msg *osc.Message) (*ControllerInput, error) {
-	if string(msg.TypeTags) != "isiiifff" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"isiiifff"}}
+func parseControllerInput(tags, data []byte) (*ControllerInput, error) {
+	if string(tags) != "isiiifff" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"isiiifff"}}
 	}
 
-	active := ControllerActive(msg.Arguments[0].(int32))
+	if len(data) <= 4 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{4}}
+	}
+
+	rawValue := getInt32(data[0:4])
+	active := ControllerActive(rawValue)
 	if !active.isValid() {
 		return nil, InvalidEnumValueError{
 			Name:  "active (controller)",
-			Value: msg.Arguments[0].(int32),
+			Value: rawValue,
 		}
+	}
+
+	name, newData, err := getString(data[4:])
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
+	if len(data) != 24 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{24}}
 	}
 
 	return &ControllerInput{
 		Active:  active,
-		Name:    msg.Arguments[1].([]byte),
-		IsLeft:  msg.Arguments[2].(int32) == 1,
-		IsTouch: msg.Arguments[3].(int32) == 1,
-		IsAxis:  msg.Arguments[4].(int32) == 1,
-		Axis: Vec3{
-			X: msg.Arguments[5].(float32),
-			Y: msg.Arguments[6].(float32),
-			Z: msg.Arguments[7].(float32),
-		},
+		Name:    name,
+		IsLeft:  getInt32(data[0:4]) == 1,
+		IsTouch: getInt32(data[4:8]) == 1,
+		IsAxis:  getInt32(data[8:12]) == 1,
+		Axis:    getVec3(data[12:24]),
 	}, nil
 }
 
@@ -409,15 +445,30 @@ func (k *KeyboardInput) Address() string {
 	return AddressKeyboardInput
 }
 
-func parseKeyboardInput(msg *osc.Message) (*KeyboardInput, error) {
-	if string(msg.TypeTags) != "isi" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"isi"}}
+func parseKeyboardInput(tags, data []byte) (*KeyboardInput, error) {
+	if string(tags) != "isi" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"isi"}}
+	}
+
+	if len(data) <= 4 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{4}}
+	}
+
+	active := getInt32(data[0:4]) == 1
+	name, newData, err := getString(data[4:])
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
+	if len(data) != 4 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{4}}
 	}
 
 	return &KeyboardInput{
-		Active:  msg.Arguments[0].(int32) == 1,
-		Name:    msg.Arguments[1].([]byte),
-		KeyCode: msg.Arguments[2].(int32),
+		Active:  active,
+		Name:    name,
+		KeyCode: getInt32(data[0:4]),
 	}, nil
 }
 
@@ -434,16 +485,20 @@ func (m *MidiNoteInput) Address() string {
 	return AddressMidiNoteInput
 }
 
-func parseMidiNoteInput(msg *osc.Message) (*MidiNoteInput, error) {
-	if string(msg.TypeTags) != "iiif" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"iiif"}}
+func parseMidiNoteInput(tags, data []byte) (*MidiNoteInput, error) {
+	if string(tags) != "iiif" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"iiif"}}
+	}
+
+	if len(data) != 16 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{16}}
 	}
 
 	return &MidiNoteInput{
-		Active:   msg.Arguments[0].(int32) == 1,
-		Channel:  msg.Arguments[1].(int32),
-		Note:     msg.Arguments[2].(int32),
-		Velocity: msg.Arguments[3].(float32),
+		Active:   getInt32(data[0:4]) == 1,
+		Channel:  getInt32(data[4:8]),
+		Note:     getInt32(data[8:12]),
+		Velocity: getFloat32(data[12:16]),
 	}, nil
 }
 
@@ -458,14 +513,18 @@ func (m *MidiCCValueInput) Address() string {
 	return AddressMidiCCValueInput
 }
 
-func parseMidiCCValueInput(msg *osc.Message) (*MidiCCValueInput, error) {
-	if string(msg.TypeTags) != "if" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"if"}}
+func parseMidiCCValueInput(tags, data []byte) (*MidiCCValueInput, error) {
+	if string(tags) != "if" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"if"}}
+	}
+
+	if len(data) != 8 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{8}}
 	}
 
 	return &MidiCCValueInput{
-		Knob:  msg.Arguments[0].(int32),
-		Value: msg.Arguments[1].(float32),
+		Knob:  getInt32(data[0:4]),
+		Value: getFloat32(data[4:8]),
 	}, nil
 }
 
@@ -480,21 +539,22 @@ func (m *MidiCCButtonInput) Address() string {
 	return AddressMidiCCButtonInput
 }
 
-func parseMidiCCButtonInput(msg *osc.Message) (*MidiCCButtonInput, error) {
-	if string(msg.TypeTags) != "ii" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"ii"}}
+func parseMidiCCButtonInput(tags, data []byte) (*MidiCCButtonInput, error) {
+	if string(tags) != "ii" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"ii"}}
+	}
+
+	if len(data) != 8 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{8}}
 	}
 
 	return &MidiCCButtonInput{
-		Knob:   msg.Arguments[0].(int32),
-		Active: msg.Arguments[1].(int32) == 1,
+		Knob:   getInt32(data[0:4]),
+		Active: getInt32(data[4:8]) == 1,
 	}, nil
 }
 
 type DeviceTransform struct {
-	Device Device
-	Local  bool // Local means device's raw scale, otherwise avatar scale.
-
 	Serial     []byte
 	Position   Vec3
 	Quaternion Vec4
@@ -503,80 +563,28 @@ type DeviceTransform struct {
 func (d *DeviceTransform) isMessage() {}
 
 func (d *DeviceTransform) Address() string {
-	if d.Local {
-		switch d.Device {
-		case DeviceHmd:
-			return AddressDeviceTransformHmdLocal
-		case DeviceCon:
-			return AddressDeviceTransformConLocal
-		case DeviceTra:
-			return AddressDeviceTransformTraLocal
-		}
-	} else {
-		switch d.Device {
-		case DeviceHmd:
-			return AddressDeviceTransformHmd
-		case DeviceCon:
-			return AddressDeviceTransformCon
-		case DeviceTra:
-			return AddressDeviceTransformTra
-		}
+	return ""
+}
+
+func parseDeviceTransform(tags, data []byte) (*DeviceTransform, error) {
+	if string(tags) != "sfffffff" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"sfffffff"}}
 	}
 
-	return "" // Should never happen on valid instances.
-}
-
-type Device string
-
-// Possible values for the device.
-const (
-	DeviceHmd Device = "Hmd"
-	DeviceCon Device = "Con"
-	DeviceTra Device = "Tra"
-)
-
-type InvalidDeviceError struct {
-	Address string
-}
-
-func (e InvalidDeviceError) Error() string {
-	return fmt.Sprintf("invalid device address `%s`", e.Address)
-}
-
-func parseDeviceTransform(msg *osc.Message) (*DeviceTransform, error) {
-	if string(msg.TypeTags) != "sfffffff" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"sfffffff"}}
+	serial, newData, err := getString(data)
+	if err != nil {
+		return nil, err
 	}
+	data = newData
 
-	var device Device
-	switch string(msg.Address) {
-	case AddressDeviceTransformHmd, AddressDeviceTransformHmdLocal:
-		device = DeviceHmd
-	case AddressDeviceTransformCon, AddressDeviceTransformConLocal:
-		device = DeviceCon
-	case AddressDeviceTransformTra, AddressDeviceTransformTraLocal:
-		device = DeviceTra
-	default:
-		return nil, InvalidDeviceError{Address: string(msg.Address)}
+	if len(data) != 28 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{28}}
 	}
 
 	return &DeviceTransform{
-		Device: device,
-		Local: string(msg.Address) == AddressDeviceTransformHmdLocal ||
-			string(msg.Address) == AddressDeviceTransformConLocal ||
-			string(msg.Address) == AddressDeviceTransformTraLocal,
-		Serial: msg.Arguments[0].([]byte),
-		Position: Vec3{
-			X: msg.Arguments[1].(float32),
-			Y: msg.Arguments[2].(float32),
-			Z: msg.Arguments[3].(float32),
-		},
-		Quaternion: Vec4{
-			X: msg.Arguments[4].(float32),
-			Y: msg.Arguments[5].(float32),
-			Z: msg.Arguments[6].(float32),
-			W: msg.Arguments[7].(float32),
-		},
+		Serial:     serial,
+		Position:   getVec3(data[0:12]),
+		Quaternion: getVec4(data[12:28]),
 	}, nil
 }
 
@@ -592,28 +600,35 @@ func (r *ReceiveEnable) Address() string {
 	return AddressReceiveEnable
 }
 
-func parseReceiveEnable(msg *osc.Message) (*ReceiveEnable, error) {
+func parseReceiveEnable(tags, data []byte) (*ReceiveEnable, error) {
 	const (
 		typeTagsV2_4 = "ii"
 		typeTagsV2_7 = "iis"
 	)
 
-	if string(msg.TypeTags) != typeTagsV2_4 &&
-		string(msg.TypeTags) != typeTagsV2_7 {
+	if string(tags) != typeTagsV2_4 &&
+		string(tags) != typeTagsV2_7 {
 		return nil, InvalidTypeTagsError{
-			Found:    msg.TypeTags,
+			Found:    tags,
 			Expected: []string{typeTagsV2_4, typeTagsV2_7},
 		}
 	}
 
+	if len(data) < 8 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{8}}
+	}
+
 	value := &ReceiveEnable{
-		Enable:    msg.Arguments[0].(int32) == 1,
-		Port:      msg.Arguments[1].(int32),
+		Enable:    getInt32(data[0:4]) == 1,
+		Port:      getInt32(data[4:8]),
 		IPAddress: nil,
 	}
 
-	if len(msg.Arguments) >= len(typeTagsV2_7) {
-		ipAddress := msg.Arguments[2].([]byte)
+	if len(data) > 8 {
+		ipAddress, _, err := getString(data[8:])
+		if err != nil {
+			return nil, err
+		}
 		value.IPAddress = &ipAddress
 	}
 
@@ -633,30 +648,26 @@ func (d *DirectionalLight) Address() string {
 	return AddressDirectionalLight
 }
 
-func parseDirectionalLight(msg *osc.Message) (*DirectionalLight, error) {
-	if string(msg.TypeTags) != "sfffffffffff" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"sfffffffffff"}}
+func parseDirectionalLight(tags, data []byte) (*DirectionalLight, error) {
+	if string(tags) != "sfffffffffff" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"sfffffffffff"}}
+	}
+
+	name, newData, err := getString(data)
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
+	if len(data) != 44 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{44}}
 	}
 
 	return &DirectionalLight{
-		Name: msg.Arguments[0].([]byte),
-		Position: Vec3{
-			X: msg.Arguments[1].(float32),
-			Y: msg.Arguments[2].(float32),
-			Z: msg.Arguments[3].(float32),
-		},
-		Quaternion: Vec4{
-			X: msg.Arguments[4].(float32),
-			Y: msg.Arguments[5].(float32),
-			Z: msg.Arguments[6].(float32),
-			W: msg.Arguments[7].(float32),
-		},
-		Color: Vec4{
-			X: msg.Arguments[8].(float32),
-			Y: msg.Arguments[9].(float32),
-			Z: msg.Arguments[10].(float32),
-			W: msg.Arguments[11].(float32),
-		},
+		Name:       name,
+		Position:   getVec3(data[0:12]),
+		Quaternion: getVec4(data[12:28]),
+		Color:      getVec4(data[28:44]),
 	}, nil
 }
 
@@ -672,28 +683,47 @@ func (l *LocalVrm) Address() string {
 	return AddressLocalVrm
 }
 
-func parseLocalVrm(msg *osc.Message) (*LocalVrm, error) {
+func parseLocalVrm(tags, data []byte) (*LocalVrm, error) {
 	const (
 		typeTagsV2_4 = "ss"
 		typeTagsV2_7 = "sss"
 	)
 
-	if string(msg.TypeTags) != typeTagsV2_4 &&
-		string(msg.TypeTags) != typeTagsV2_7 {
+	if string(tags) != typeTagsV2_4 &&
+		string(tags) != typeTagsV2_7 {
 		return nil, InvalidTypeTagsError{
-			Found:    msg.TypeTags,
+			Found:    tags,
 			Expected: []string{typeTagsV2_4, typeTagsV2_7},
 		}
 	}
 
+	if len(data) == 0 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{1}}
+	}
+
+	path, newData, err := getString(data)
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
+	title, newData, err := getString(data)
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
 	value := &LocalVrm{
-		Path:  msg.Arguments[0].([]byte),
-		Title: msg.Arguments[1].([]byte),
+		Path:  path,
+		Title: title,
 		Hash:  nil,
 	}
 
-	if len(msg.Arguments) >= len(typeTagsV2_7) {
-		hash := msg.Arguments[2].([]byte)
+	if len(data) > 0 {
+		hash, _, err := getString(data)
+		if err != nil {
+			return nil, err
+		}
 		value.Hash = &hash
 	}
 
@@ -711,14 +741,29 @@ func (r *RemoteVrm) Address() string {
 	return AddressRemoteVrm
 }
 
-func parseRemoteVrm(msg *osc.Message) (*RemoteVrm, error) {
-	if string(msg.TypeTags) != "ss" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"ss"}}
+func parseRemoteVrm(tags, data []byte) (*RemoteVrm, error) {
+	if string(tags) != "ss" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"ss"}}
+	}
+
+	if len(data) == 0 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{1}}
+	}
+
+	service, newData, err := getString(data)
+	if err != nil {
+		return nil, err
+	}
+	data = newData
+
+	json, _, err := getString(data)
+	if err != nil {
+		return nil, err
 	}
 
 	return &RemoteVrm{
-		Service: msg.Arguments[0].([]byte),
-		JSON:    msg.Arguments[1].([]byte),
+		Service: service,
+		JSON:    json,
 	}, nil
 }
 
@@ -732,13 +777,22 @@ func (o *OptionString) Address() string {
 	return AddressOptionString
 }
 
-func parseOptionString(msg *osc.Message) (*OptionString, error) {
-	if string(msg.TypeTags) != "s" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"s"}}
+func parseOptionString(tags, data []byte) (*OptionString, error) {
+	if string(tags) != "s" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"s"}}
+	}
+
+	if len(data) == 0 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{1}}
+	}
+
+	option, _, err := getString(data)
+	if err != nil {
+		return nil, err
 	}
 
 	return &OptionString{
-		Option: msg.Arguments[0].([]byte),
+		Option: option,
 	}, nil
 }
 
@@ -752,18 +806,17 @@ func (b *BackgroundColor) Address() string {
 	return AddressBackgroundColor
 }
 
-func parseBackgroundColor(msg *osc.Message) (*BackgroundColor, error) {
-	if string(msg.TypeTags) != "ffff" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"ffff"}}
+func parseBackgroundColor(tags, data []byte) (*BackgroundColor, error) {
+	if string(tags) != "ffff" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"ffff"}}
+	}
+
+	if len(data) != 16 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{16}}
 	}
 
 	return &BackgroundColor{
-		Color: Vec4{
-			X: msg.Arguments[0].(float32),
-			Y: msg.Arguments[1].(float32),
-			Z: msg.Arguments[2].(float32),
-			W: msg.Arguments[3].(float32),
-		},
+		Color: getVec4(data[0:16]),
 	}, nil
 }
 
@@ -780,16 +833,20 @@ func (w *WindowAttribute) Address() string {
 	return AddressWindowAttribute
 }
 
-func parseWindowAttribute(msg *osc.Message) (*WindowAttribute, error) {
-	if string(msg.TypeTags) != "iiii" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"iiii"}}
+func parseWindowAttribute(tags, data []byte) (*WindowAttribute, error) {
+	if string(tags) != "iiii" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"iiii"}}
+	}
+
+	if len(data) != 16 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{16}}
 	}
 
 	return &WindowAttribute{
-		IsTopMost:          msg.Arguments[0].(int32) == 1,
-		IsTransparent:      msg.Arguments[1].(int32) == 1,
-		WindowClickThrough: msg.Arguments[2].(int32) == 1,
-		HideBorder:         msg.Arguments[3].(int32) == 1,
+		IsTopMost:          getInt32(data[0:4]) == 1,
+		IsTransparent:      getInt32(data[4:8]) == 1,
+		WindowClickThrough: getInt32(data[8:12]) == 1,
+		HideBorder:         getInt32(data[12:16]) == 1,
 	}, nil
 }
 
@@ -803,12 +860,21 @@ func (l *LoadedSettingPath) Address() string {
 	return AddressLoadedSettingPath
 }
 
-func parseLoadedSettingPath(msg *osc.Message) (*LoadedSettingPath, error) {
-	if string(msg.TypeTags) != "s" {
-		return nil, InvalidTypeTagsError{Found: msg.TypeTags, Expected: []string{"s"}}
+func parseLoadedSettingPath(tags, data []byte) (*LoadedSettingPath, error) {
+	if string(tags) != "s" {
+		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"s"}}
+	}
+
+	if len(data) == 0 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{1}}
+	}
+
+	path, _, err := getString(data)
+	if err != nil {
+		return nil, err
 	}
 
 	return &LoadedSettingPath{
-		Path: msg.Arguments[0].([]byte),
+		Path: path,
 	}, nil
 }

@@ -209,25 +209,21 @@ func (m Message) String() string {
 func readMessage(buf []byte) (*Message, []byte, error) {
 	raw := buf
 
-	address, newBuf, err := readString(buf)
+	address, newBuf, err := ReadString(buf)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed reading address: %w", err)
 	}
 	buf = newBuf
 
-	if len(buf) == 0 || buf[0] != ',' {
-		return nil, nil, ErrTypeTagsStartMissing
-	}
-
-	typeTags, newBuf, err := readString(buf)
+	typeTags, newBuf, err := ReadTypeTags(buf)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed reading type tags: %w", err)
 	}
 	buf = newBuf
 
-	arguments := make([]interface{}, len(typeTags)-1)
+	arguments := make([]interface{}, len(typeTags))
 
-	for idx, tag := range typeTags[1:] {
+	for idx, tag := range typeTags {
 		switch tag {
 		case TypeTagInt:
 			v, b, err := readInt(buf)
@@ -244,7 +240,7 @@ func readMessage(buf []byte) (*Message, []byte, error) {
 			buf = b
 			arguments[idx] = v
 		case TypeTagString, TypeTagSymbol:
-			v, b, err := readString(buf)
+			v, b, err := ReadString(buf)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -314,10 +310,25 @@ func readMessage(buf []byte) (*Message, []byte, error) {
 
 	return &Message{
 		Address:   address,
-		TypeTags:  typeTags[1:],
+		TypeTags:  typeTags,
 		Arguments: arguments,
 		Raw:       raw,
 	}, buf, nil
+}
+
+// ReadTypeTags reads the OSC type tags from the start of the given buffer, and returns it with the
+// advanced buffer, or an error if decoding failed.
+func ReadTypeTags(buf []byte) ([]byte, []byte, error) {
+	if len(buf) == 0 || buf[0] != ',' {
+		return nil, nil, ErrTypeTagsStartMissing
+	}
+
+	typeTags, newBuf, err := ReadString(buf)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return typeTags[1:], newBuf, nil
 }
 
 // Bundle is a single OCS bundle, which is in turn a collection of packets, that are either messages
@@ -337,7 +348,7 @@ func (b Bundle) String() string {
 }
 
 func readBundle(buf []byte) (*Bundle, []byte, error) {
-	ident, newBuf, err := readString(buf)
+	ident, newBuf, err := ReadString(buf)
 	if err != nil {
 		return nil, nil, err
 	}
