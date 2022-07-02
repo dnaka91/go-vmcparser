@@ -63,9 +63,6 @@ func (e InvalidBufferLengthError) Error() string {
 // Message is a marker for any type that is considered a VMC message.
 type Message interface {
 	isMessage()
-
-	// Address returns the OSC address belonging to the particular VMC message.
-	Address() string
 }
 
 // ParseMessage takes a generic OSC message, and tries to parse it into one of the known VMC

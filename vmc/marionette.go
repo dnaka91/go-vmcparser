@@ -43,10 +43,6 @@ type Available struct {
 
 func (a *Available) isMessage() {}
 
-func (a *Available) Address() string {
-	return AddressAvailable
-}
-
 type CalibrationState uint8
 
 // Possible values for the calibration state.
@@ -169,10 +165,6 @@ type RelativeTime struct {
 
 func (r *RelativeTime) isMessage() {}
 
-func (r *RelativeTime) Address() string {
-	return AddressRelativeTime
-}
-
 func parseRelativeTime(tags, data []byte) (*RelativeTime, error) {
 	if string(tags) != "f" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"f"}}
@@ -196,10 +188,6 @@ type RootTransform struct {
 }
 
 func (r *RootTransform) isMessage() {}
-
-func (r *RootTransform) Address() string {
-	return AddressRootTransform
-}
 
 func parseRootTransform(tags, data []byte) (*RootTransform, error) {
 	const (
@@ -253,10 +241,6 @@ type BoneTransform struct {
 
 func (b *BoneTransform) isMessage() {}
 
-func (b *BoneTransform) Address() string {
-	return AddressBoneTransform
-}
-
 func parseBoneTransform(tags, data []byte) (*BoneTransform, error) {
 	if string(tags) != "sfffffff" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"sfffffff"}}
@@ -286,10 +270,6 @@ type BlendShapeProxyValue struct {
 
 func (b *BlendShapeProxyValue) isMessage() {}
 
-func (b *BlendShapeProxyValue) Address() string {
-	return AddressBlendShapeProxyValue
-}
-
 func parseBlendShapeProxyValue(tags, data []byte) (*BlendShapeProxyValue, error) {
 	if string(tags) != "sf" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"sf"}}
@@ -315,10 +295,6 @@ type BlendShapeProxyApply struct{}
 
 func (b *BlendShapeProxyApply) isMessage() {}
 
-func (b *BlendShapeProxyApply) Address() string {
-	return AddressBlendShapeProxyApply
-}
-
 func parseBlendShapeProxyApply(tags, data []byte) (*BlendShapeProxyApply, error) {
 	if string(tags) != "" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: nil}
@@ -339,10 +315,6 @@ type CameraTransform struct {
 }
 
 func (c *CameraTransform) isMessage() {}
-
-func (c *CameraTransform) Address() string {
-	return AddressCameraTransform
-}
 
 func parseCameraTransform(tags, data []byte) (*CameraTransform, error) {
 	if string(tags) != "sffffffff" {
@@ -377,10 +349,6 @@ type ControllerInput struct {
 }
 
 func (c *ControllerInput) isMessage() {}
-
-func (c *ControllerInput) Address() string {
-	return AddressControllerInput
-}
 
 type ControllerActive uint8
 
@@ -441,10 +409,6 @@ type KeyboardInput struct {
 
 func (k *KeyboardInput) isMessage() {}
 
-func (k *KeyboardInput) Address() string {
-	return AddressKeyboardInput
-}
-
 func parseKeyboardInput(tags, data []byte) (*KeyboardInput, error) {
 	if string(tags) != "isi" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"isi"}}
@@ -481,10 +445,6 @@ type MidiNoteInput struct {
 
 func (m *MidiNoteInput) isMessage() {}
 
-func (m *MidiNoteInput) Address() string {
-	return AddressMidiNoteInput
-}
-
 func parseMidiNoteInput(tags, data []byte) (*MidiNoteInput, error) {
 	if string(tags) != "iiif" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"iiif"}}
@@ -509,10 +469,6 @@ type MidiCCValueInput struct {
 
 func (m *MidiCCValueInput) isMessage() {}
 
-func (m *MidiCCValueInput) Address() string {
-	return AddressMidiCCValueInput
-}
-
 func parseMidiCCValueInput(tags, data []byte) (*MidiCCValueInput, error) {
 	if string(tags) != "if" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"if"}}
@@ -534,10 +490,6 @@ type MidiCCButtonInput struct {
 }
 
 func (m *MidiCCButtonInput) isMessage() {}
-
-func (m *MidiCCButtonInput) Address() string {
-	return AddressMidiCCButtonInput
-}
 
 func parseMidiCCButtonInput(tags, data []byte) (*MidiCCButtonInput, error) {
 	if string(tags) != "ii" {
@@ -561,10 +513,6 @@ type DeviceTransform struct {
 }
 
 func (d *DeviceTransform) isMessage() {}
-
-func (d *DeviceTransform) Address() string {
-	return ""
-}
 
 func parseDeviceTransform(tags, data []byte) (*DeviceTransform, error) {
 	if string(tags) != "sfffffff" {
@@ -595,10 +543,6 @@ type ReceiveEnable struct {
 }
 
 func (r *ReceiveEnable) isMessage() {}
-
-func (r *ReceiveEnable) Address() string {
-	return AddressReceiveEnable
-}
 
 func parseReceiveEnable(tags, data []byte) (*ReceiveEnable, error) {
 	const (
@@ -644,10 +588,6 @@ type DirectionalLight struct {
 
 func (d *DirectionalLight) isMessage() {}
 
-func (d *DirectionalLight) Address() string {
-	return AddressDirectionalLight
-}
-
 func parseDirectionalLight(tags, data []byte) (*DirectionalLight, error) {
 	if string(tags) != "sfffffffffff" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"sfffffffffff"}}
@@ -678,10 +618,6 @@ type LocalVrm struct {
 }
 
 func (l *LocalVrm) isMessage() {}
-
-func (l *LocalVrm) Address() string {
-	return AddressLocalVrm
-}
 
 func parseLocalVrm(tags, data []byte) (*LocalVrm, error) {
 	const (
@@ -737,10 +673,6 @@ type RemoteVrm struct {
 
 func (r *RemoteVrm) isMessage() {}
 
-func (r *RemoteVrm) Address() string {
-	return AddressRemoteVrm
-}
-
 func parseRemoteVrm(tags, data []byte) (*RemoteVrm, error) {
 	if string(tags) != "ss" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"ss"}}
@@ -773,10 +705,6 @@ type OptionString struct {
 
 func (o *OptionString) isMessage() {}
 
-func (o *OptionString) Address() string {
-	return AddressOptionString
-}
-
 func parseOptionString(tags, data []byte) (*OptionString, error) {
 	if string(tags) != "s" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"s"}}
@@ -802,10 +730,6 @@ type BackgroundColor struct {
 
 func (b *BackgroundColor) isMessage() {}
 
-func (b *BackgroundColor) Address() string {
-	return AddressBackgroundColor
-}
-
 func parseBackgroundColor(tags, data []byte) (*BackgroundColor, error) {
 	if string(tags) != "ffff" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"ffff"}}
@@ -829,10 +753,6 @@ type WindowAttribute struct {
 
 func (w *WindowAttribute) isMessage() {}
 
-func (w *WindowAttribute) Address() string {
-	return AddressWindowAttribute
-}
-
 func parseWindowAttribute(tags, data []byte) (*WindowAttribute, error) {
 	if string(tags) != "iiii" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"iiii"}}
@@ -855,10 +775,6 @@ type LoadedSettingPath struct {
 }
 
 func (l *LoadedSettingPath) isMessage() {}
-
-func (l *LoadedSettingPath) Address() string {
-	return AddressLoadedSettingPath
-}
 
 func parseLoadedSettingPath(tags, data []byte) (*LoadedSettingPath, error) {
 	if string(tags) != "s" {
