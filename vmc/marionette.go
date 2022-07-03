@@ -114,11 +114,8 @@ func parseAvailable(tags, data []byte) (*Available, error) {
 		}
 	}
 
-	if len(data) != 4 && len(data) != 12 && len(data) != 16 {
-		return nil, InvalidBufferLengthError{
-			Length:   len(data),
-			Expected: []int{4, 8, 12},
-		}
+	if len(data) < 4 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 4}
 	}
 
 	value := &Available{
@@ -128,7 +125,7 @@ func parseAvailable(tags, data []byte) (*Available, error) {
 		TrackingStatus:   nil,
 	}
 
-	if len(data) == 12 || len(data) == 16 {
+	if len(data) >= 12 {
 		rawValue := getInt32(data[4:8])
 		calibrationState := CalibrationState(rawValue)
 		if !calibrationState.isValid() {
@@ -151,7 +148,7 @@ func parseAvailable(tags, data []byte) (*Available, error) {
 		value.CalibrationMode = &calibrationMode
 	}
 
-	if len(data) == 16 {
+	if len(data) >= 16 {
 		trackingStatus := getInt32(data[12:16]) == 1
 		value.TrackingStatus = &trackingStatus
 	}
@@ -170,8 +167,8 @@ func parseRelativeTime(tags, data []byte) (*RelativeTime, error) {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"f"}}
 	}
 
-	if len(data) != 4 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{4}}
+	if len(data) < 4 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 4}
 	}
 
 	return &RelativeTime{
@@ -208,11 +205,8 @@ func parseRootTransform(tags, data []byte) (*RootTransform, error) {
 	}
 	data = newData
 
-	if len(data) != 28 && len(data) != 52 {
-		return nil, InvalidBufferLengthError{
-			Length:   len(data),
-			Expected: []int{28, 52},
-		}
+	if len(data) < 28 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 28}
 	}
 
 	value := &RootTransform{
@@ -223,7 +217,7 @@ func parseRootTransform(tags, data []byte) (*RootTransform, error) {
 		Offset:     nil,
 	}
 
-	if len(data) == 52 {
+	if len(data) >= 52 {
 		scale := getVec3(data[28:40])
 		offset := getVec3(data[40:52])
 		value.Scale = &scale
@@ -252,8 +246,8 @@ func parseBoneTransform(tags, data []byte) (*BoneTransform, error) {
 	}
 	data = newData
 
-	if len(data) != 28 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{28}}
+	if len(data) < 28 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 28}
 	}
 
 	return &BoneTransform{
@@ -281,8 +275,8 @@ func parseBlendShapeProxyValue(tags, data []byte) (*BlendShapeProxyValue, error)
 	}
 	data = newData
 
-	if len(data) != 4 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{4}}
+	if len(data) < 4 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 4}
 	}
 
 	return &BlendShapeProxyValue{
@@ -298,10 +292,6 @@ func (b *BlendShapeProxyApply) isMessage() {}
 func parseBlendShapeProxyApply(tags, data []byte) (*BlendShapeProxyApply, error) {
 	if string(tags) != "" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: nil}
-	}
-
-	if len(data) != 0 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: nil}
 	}
 
 	return &BlendShapeProxyApply{}, nil
@@ -327,8 +317,8 @@ func parseCameraTransform(tags, data []byte) (*CameraTransform, error) {
 	}
 	data = newData
 
-	if len(data) != 32 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{32}}
+	if len(data) < 32 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 32}
 	}
 
 	return &CameraTransform{
@@ -368,8 +358,8 @@ func parseControllerInput(tags, data []byte) (*ControllerInput, error) {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"isiiifff"}}
 	}
 
-	if len(data) <= 4 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{4}}
+	if len(data) < 4 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 4}
 	}
 
 	rawValue := getInt32(data[0:4])
@@ -387,8 +377,8 @@ func parseControllerInput(tags, data []byte) (*ControllerInput, error) {
 	}
 	data = newData
 
-	if len(data) != 24 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{24}}
+	if len(data) < 24 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 24}
 	}
 
 	return &ControllerInput{
@@ -414,8 +404,8 @@ func parseKeyboardInput(tags, data []byte) (*KeyboardInput, error) {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"isi"}}
 	}
 
-	if len(data) <= 4 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{4}}
+	if len(data) < 4 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 4}
 	}
 
 	active := getInt32(data[0:4]) == 1
@@ -425,8 +415,8 @@ func parseKeyboardInput(tags, data []byte) (*KeyboardInput, error) {
 	}
 	data = newData
 
-	if len(data) != 4 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{4}}
+	if len(data) < 4 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 4}
 	}
 
 	return &KeyboardInput{
@@ -450,8 +440,8 @@ func parseMidiNoteInput(tags, data []byte) (*MidiNoteInput, error) {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"iiif"}}
 	}
 
-	if len(data) != 16 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{16}}
+	if len(data) < 16 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 16}
 	}
 
 	return &MidiNoteInput{
@@ -474,8 +464,8 @@ func parseMidiCCValueInput(tags, data []byte) (*MidiCCValueInput, error) {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"if"}}
 	}
 
-	if len(data) != 8 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{8}}
+	if len(data) < 8 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 8}
 	}
 
 	return &MidiCCValueInput{
@@ -496,8 +486,8 @@ func parseMidiCCButtonInput(tags, data []byte) (*MidiCCButtonInput, error) {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"ii"}}
 	}
 
-	if len(data) != 8 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{8}}
+	if len(data) < 8 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 8}
 	}
 
 	return &MidiCCButtonInput{
@@ -525,8 +515,8 @@ func parseDeviceTransform(tags, data []byte) (*DeviceTransform, error) {
 	}
 	data = newData
 
-	if len(data) != 28 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{28}}
+	if len(data) < 28 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 28}
 	}
 
 	return &DeviceTransform{
@@ -559,7 +549,7 @@ func parseReceiveEnable(tags, data []byte) (*ReceiveEnable, error) {
 	}
 
 	if len(data) < 8 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{8}}
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 8}
 	}
 
 	value := &ReceiveEnable{
@@ -599,8 +589,8 @@ func parseDirectionalLight(tags, data []byte) (*DirectionalLight, error) {
 	}
 	data = newData
 
-	if len(data) != 44 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{44}}
+	if len(data) < 44 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 44}
 	}
 
 	return &DirectionalLight{
@@ -631,10 +621,6 @@ func parseLocalVrm(tags, data []byte) (*LocalVrm, error) {
 			Found:    tags,
 			Expected: []string{typeTagsV2_4, typeTagsV2_7},
 		}
-	}
-
-	if len(data) == 0 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{1}}
 	}
 
 	path, newData, err := getString(data)
@@ -678,10 +664,6 @@ func parseRemoteVrm(tags, data []byte) (*RemoteVrm, error) {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"ss"}}
 	}
 
-	if len(data) == 0 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{1}}
-	}
-
 	service, newData, err := getString(data)
 	if err != nil {
 		return nil, err
@@ -710,10 +692,6 @@ func parseOptionString(tags, data []byte) (*OptionString, error) {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"s"}}
 	}
 
-	if len(data) == 0 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{1}}
-	}
-
 	option, _, err := getString(data)
 	if err != nil {
 		return nil, err
@@ -735,8 +713,8 @@ func parseBackgroundColor(tags, data []byte) (*BackgroundColor, error) {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"ffff"}}
 	}
 
-	if len(data) != 16 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{16}}
+	if len(data) < 16 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 16}
 	}
 
 	return &BackgroundColor{
@@ -758,8 +736,8 @@ func parseWindowAttribute(tags, data []byte) (*WindowAttribute, error) {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"iiii"}}
 	}
 
-	if len(data) != 16 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{16}}
+	if len(data) < 16 {
+		return nil, InvalidBufferLengthError{Length: len(data), Expected: 16}
 	}
 
 	return &WindowAttribute{
@@ -779,10 +757,6 @@ func (l *LoadedSettingPath) isMessage() {}
 func parseLoadedSettingPath(tags, data []byte) (*LoadedSettingPath, error) {
 	if string(tags) != "s" {
 		return nil, InvalidTypeTagsError{Found: tags, Expected: []string{"s"}}
-	}
-
-	if len(data) == 0 {
-		return nil, InvalidBufferLengthError{Length: len(data), Expected: []int{1}}
 	}
 
 	path, _, err := getString(data)

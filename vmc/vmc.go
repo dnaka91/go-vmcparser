@@ -49,20 +49,13 @@ func (e InvalidEnumValueError) Error() string {
 
 type InvalidBufferLengthError struct {
 	Length   int
-	Expected []int
+	Expected int
 }
 
 var _ error = (*InvalidBufferLengthError)(nil)
 
 func (e InvalidBufferLengthError) Error() string {
-	switch len(e.Expected) {
-	case 0:
-		return fmt.Sprintf("got %d bytes of data, expected none", e.Length)
-	case 1:
-		return fmt.Sprintf("got %d bytes of data, expected exactly %d", e.Length, e.Expected[0])
-	default:
-		return fmt.Sprintf("got %d bytes of data, expected one of %v", e.Length, e.Expected)
-	}
+	return fmt.Sprintf("got %d bytes of data, expected at least %d", e.Length, e.Expected)
 }
 
 // Message is a marker for any type that is considered a VMC message.

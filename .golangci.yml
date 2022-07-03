@@ -21,6 +21,7 @@ issues:
         - funlen
         - lll
         - nlreturn
+        - varnamelen
     # can't really do much about the following issues,
     # and not worth refactoring either.
     - text: ^Function '(readMessage|ParseMessage)' has too many statements
@@ -32,6 +33,6 @@ issues:
     - text: ^calculated cyclomatic complexity for function (readMessage|ParseMessage|parseAvailable) is
       linters:
         - cyclop
-    - text: '^mnd: Magic number: \d+, in <condition> detected'
+    - text: '^mnd: Magic number: \d+, in <(assign|condition)> detected'
       linters:
         - gomnd
